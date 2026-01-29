@@ -1,10 +1,10 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { quests } from '../data/quests';
 import { useAppStore } from '../store/appStore';
 import { Trophy, Star, X, CheckCircle, Lightbulb, Target } from 'lucide-react';
 
 export function QuestPanel() {
   const {
+    availableQuests,
     activeQuest,
     currentStepIndex,
     completedQuests,
@@ -80,7 +80,7 @@ export function QuestPanel() {
 
       {/* Quest List */}
       <div className="quest-list">
-        {quests.map(quest => {
+        {availableQuests.map(quest => {
           const isCompleted = completedQuests.includes(quest.id);
           const isActive = activeQuest?.id === quest.id;
 

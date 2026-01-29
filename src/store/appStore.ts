@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import type { Quest } from '../data/quests';
-import { quests } from '../data/quests';
+import { quests as defaultQuests } from '../data/quests';
 import type { Ontology, DataBinding } from '../data/ontology';
 import { cosmicCoffeeOntology, sampleBindings } from '../data/ontology';
+import { generateQuestsForOntology } from '../data/questGenerator';
 
 interface AppState {
   // Ontology State
@@ -18,6 +19,7 @@ interface AppState {
   darkMode: boolean;
   
   // Quest State
+  availableQuests: Quest[];
   activeQuest: Quest | null;
   currentStepIndex: number;
   completedQuests: string[];
@@ -66,7 +68,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   showDataBindings: false,
   darkMode: true,
   
-  // Initial Quest State
+  // Initial Quest State - use default quests for Cosmic Coffee
+  availableQuests: defaultQuests,
   activeQuest: null,
   currentStepIndex: 0,
   completedQuests: [],
@@ -78,16 +81,23 @@ export const useAppStore = create<AppState>((set, get) => ({
   queryResult: null,
   
   // Ontology Actions
-  loadOntology: (ontology, bindings = []) => set({
-    currentOntology: ontology,
-    dataBindings: bindings,
-    selectedEntityId: null,
-    selectedRelationshipId: null,
-    highlightedEntities: [],
-    highlightedRelationships: [],
-    activeQuest: null,
-    currentStepIndex: 0
-  }),
+  loadOntology: (ontology, bindings = []) => {
+    // Generate new quests based on the loaded ontology
+    const newQuests = generateQuestsForOntology(ontology);
+    set({
+      currentOntology: ontology,
+      dataBindings: bindings,
+      selectedEntityId: null,
+      selectedRelationshipId: null,
+      highlightedEntities: [],
+      highlightedRelationships: [],
+      activeQuest: null,
+      currentStepIndex: 0,
+      availableQuests: newQuests,
+      // Reset completed quests when loading a new ontology
+      completedQuests: []
+    });
+  },
   
   resetToDefault: () => set({
     currentOntology: cosmicCoffeeOntology,
@@ -95,7 +105,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     selectedEntityId: null,
     selectedRelationshipId: null,
     highlightedEntities: [],
-    highlightedRelationships: []
+    highlightedRelationships: [],
+    availableQuests: defaultQuests,
+    activeQuest: null,
+    currentStepIndex: 0,
+    completedQuests: []
   }),
   
   exportOntology: () => {
@@ -122,7 +136,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   
   // Quest Actions
   startQuest: (questId) => {
-    const quest = quests.find(q => q.id === questId);
+    const { availableQuests } = get();
+    const quest = availableQuests.find(q => q.id === questId);
     if (quest) {
       set({ 
         activeQuest: quest, 
