@@ -7,7 +7,20 @@ import { ZoomIn, ZoomOut, Maximize2, RotateCcw } from 'lucide-react';
 export function OntologyGraph() {
   const cyRef = useRef<Core | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const isDestroyedRef = useRef(false);
+  const mountedRef = useRef(true);
+  
+  // Helper to safely get cytoscape instance - returns null if destroyed
+  const getCy = useCallback(() => {
+    const cy = cyRef.current;
+    if (!cy || !mountedRef.current) return null;
+    // Check if cy is still mounted (destroyed instances have no container)
+    try {
+      if (!cy.container()) return null;
+    } catch {
+      return null;
+    }
+    return cy;
+  }, []);
   
   const {
     currentOntology,
@@ -222,10 +235,10 @@ export function OntologyGraph() {
     });
 
     cyRef.current = cy;
-    isDestroyedRef.current = false;
+    mountedRef.current = true;
 
     return () => {
-      isDestroyedRef.current = true;
+      mountedRef.current = false;
       cy.destroy();
       cyRef.current = null;
     };
@@ -233,106 +246,126 @@ export function OntologyGraph() {
 
   // Update graph colors when theme changes (without recreating graph)
   useEffect(() => {
-    const cy = cyRef.current;
-    if (!cy || isDestroyedRef.current) return;
+    const cy = getCy();
+    if (!cy) return;
 
-    cy.style()
-      .selector('node')
-      .style({ 'color': themeColors.nodeText })
-      .selector('edge')
-      .style({
-        'color': themeColors.edgeText,
-        'line-color': themeColors.edgeColor,
-        'target-arrow-color': themeColors.edgeColor
-      })
-      .update();
-  }, [themeColors]);
+    try {
+      cy.style()
+        .selector('node')
+        .style({ 'color': themeColors.nodeText })
+        .selector('edge')
+        .style({
+          'color': themeColors.edgeText,
+          'line-color': themeColors.edgeColor,
+          'target-arrow-color': themeColors.edgeColor
+        })
+        .update();
+    } catch {
+      // Graph may have been destroyed
+    }
+  }, [themeColors, getCy]);
 
   // Handle selection changes
   useEffect(() => {
-    const cy = cyRef.current;
-    if (!cy || isDestroyedRef.current) return;
+    const cy = getCy();
+    if (!cy) return;
 
-    cy.elements().removeClass('highlighted dimmed');
-    cy.elements().unselect();
+    try {
+      cy.elements().removeClass('highlighted dimmed');
+      cy.elements().unselect();
 
-    if (selectedEntityId) {
-      const node = cy.getElementById(selectedEntityId);
-      node.select();
-      
-      // Highlight connected edges and nodes
-      const connectedEdges = node.connectedEdges();
-      const connectedNodes = connectedEdges.connectedNodes();
-      
-      cy.elements().addClass('dimmed');
-      node.removeClass('dimmed');
-      connectedEdges.removeClass('dimmed');
-      connectedNodes.removeClass('dimmed');
+      if (selectedEntityId) {
+        const node = cy.getElementById(selectedEntityId);
+        node.select();
+        
+        // Highlight connected edges and nodes
+        const connectedEdges = node.connectedEdges();
+        const connectedNodes = connectedEdges.connectedNodes();
+        
+        cy.elements().addClass('dimmed');
+        node.removeClass('dimmed');
+        connectedEdges.removeClass('dimmed');
+        connectedNodes.removeClass('dimmed');
+      }
+
+      if (selectedRelationshipId) {
+        const edge = cy.getElementById(selectedRelationshipId);
+        edge.select();
+        
+        const connectedNodes = edge.connectedNodes();
+        
+        cy.elements().addClass('dimmed');
+        edge.removeClass('dimmed');
+        connectedNodes.removeClass('dimmed');
+      }
+    } catch {
+      // Graph may have been destroyed
     }
-
-    if (selectedRelationshipId) {
-      const edge = cy.getElementById(selectedRelationshipId);
-      edge.select();
-      
-      const connectedNodes = edge.connectedNodes();
-      
-      cy.elements().addClass('dimmed');
-      edge.removeClass('dimmed');
-      connectedNodes.removeClass('dimmed');
-    }
-  }, [selectedEntityId, selectedRelationshipId]);
+  }, [selectedEntityId, selectedRelationshipId, getCy]);
 
   // Handle highlights from queries
   useEffect(() => {
-    const cy = cyRef.current;
-    if (!cy || isDestroyedRef.current) return;
+    const cy = getCy();
+    if (!cy) return;
 
-    cy.elements().removeClass('highlighted');
+    try {
+      cy.elements().removeClass('highlighted');
 
-    highlightedEntities.forEach(id => {
-      cy.getElementById(id).addClass('highlighted');
-    });
+      highlightedEntities.forEach(id => {
+        cy.getElementById(id).addClass('highlighted');
+      });
 
-    highlightedRelationships.forEach(id => {
-      cy.getElementById(id).addClass('highlighted');
-    });
-  }, [highlightedEntities, highlightedRelationships]);
+      highlightedRelationships.forEach(id => {
+        cy.getElementById(id).addClass('highlighted');
+      });
+    } catch {
+      // Graph may have been destroyed
+    }
+  }, [highlightedEntities, highlightedRelationships, getCy]);
 
   // Graph controls
   const handleZoomIn = () => {
-    const cy = cyRef.current;
-    if (cy && !isDestroyedRef.current) {
-      cy.zoom(cy.zoom() * 1.3);
-      cy.center();
+    const cy = getCy();
+    if (cy) {
+      try {
+        cy.zoom(cy.zoom() * 1.3);
+        cy.center();
+      } catch { /* ignore */ }
     }
   };
 
   const handleZoomOut = () => {
-    const cy = cyRef.current;
-    if (cy && !isDestroyedRef.current) {
-      cy.zoom(cy.zoom() / 1.3);
-      cy.center();
+    const cy = getCy();
+    if (cy) {
+      try {
+        cy.zoom(cy.zoom() / 1.3);
+        cy.center();
+      } catch { /* ignore */ }
     }
   };
 
   const handleFit = () => {
-    const cy = cyRef.current;
-    if (cy && !isDestroyedRef.current) {
-      cy.fit(undefined, 60);
+    const cy = getCy();
+    if (cy) {
+      try {
+        cy.fit(undefined, 60);
+      } catch { /* ignore */ }
     }
   };
 
   const handleReset = () => {
-    const cy = cyRef.current;
-    if (cy && !isDestroyedRef.current) {
-      cy.layout({
-        name: 'cose',
-        idealEdgeLength: () => 180,
-        nodeOverlap: 40,
-        fit: true,
-        padding: 60,
-        nodeRepulsion: () => 8000
-      }).run();
+    const cy = getCy();
+    if (cy) {
+      try {
+        cy.layout({
+          name: 'cose',
+          idealEdgeLength: () => 180,
+          nodeOverlap: 40,
+          fit: true,
+          padding: 60,
+          nodeRepulsion: () => 8000
+        }).run();
+      } catch { /* ignore */ }
     }
   };
 
