@@ -220,7 +220,7 @@ describe('GalleryModal', () => {
     expect(screen.getByText('No ontologies match your filters.')).toBeTruthy();
   });
 
-  it('loads an ontology and closes the modal', async () => {
+  it('loads an ontology and navigates to its deep link', async () => {
     mockFetchSuccess();
     const user = userEvent.setup();
     render(<GalleryModal onClose={onClose} />);
@@ -236,7 +236,8 @@ describe('GalleryModal', () => {
     const state = useAppStore.getState();
     expect(state.currentOntology.name).toBe('Cosmic Coffee');
     expect(state.currentOntology.entityTypes).toHaveLength(3);
-    expect(onClose).toHaveBeenCalledOnce();
+    // Now navigates to deep link instead of calling onClose
+    expect(window.location.hash).toBe('#/catalogue/cosmic-coffee');
   });
 
   it('shows "Community" badge only on community entries', async () => {

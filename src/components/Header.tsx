@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { Moon, Sun, Database, Trophy, HelpCircle, FileJson, LayoutGrid, Sparkles, FileText } from 'lucide-react';
+import { useRoute } from '../hooks/useRoute';
+import { Moon, Sun, Database, Trophy, HelpCircle, FileJson, LayoutGrid, Sparkles, FileText, Share2 } from 'lucide-react';
 
 interface HeaderProps {
   onHelpClick: () => void;
@@ -12,8 +14,21 @@ interface HeaderProps {
 
 export function Header({ onHelpClick, onDataSourcesClick, onImportExportClick, onGalleryClick, onNLBuilderClick, onSummaryClick }: HeaderProps) {
   const { darkMode, toggleDarkMode, totalPoints, earnedBadges, currentOntology } = useAppStore();
+  const route = useRoute();
+  const [copied, setCopied] = useState(false);
 
   const ontologyDisplayName = currentOntology.name || 'Untitled Ontology';
+
+  const shareableId = route.page === 'catalogue' && route.ontologyId ? route.ontologyId : null;
+
+  const handleShare = () => {
+    if (!shareableId) return;
+    const url = `${window.location.origin}${window.location.pathname}#/catalogue/${shareableId}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   return (
     <header className="header">
@@ -45,6 +60,17 @@ export function Header({ onHelpClick, onDataSourcesClick, onImportExportClick, o
       </div>
 
       <div className="header-actions">
+        {shareableId && (
+          <button
+            className="header-text-btn"
+            onClick={handleShare}
+            title="Copy shareable link to this ontology"
+            style={copied ? { color: 'var(--ms-green, #107C10)' } : undefined}
+          >
+            <Share2 size={16} />
+            <span>{copied ? 'Copied!' : 'Share'}</span>
+          </button>
+        )}
         <button className="header-text-btn" onClick={onSummaryClick} title="View Ontology Summary">
           <FileText size={16} />
           <span>Summary</span>

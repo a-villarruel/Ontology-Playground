@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Layers, ArrowRight, Search, Code, User } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 import { serializeToRDF } from '../lib/rdf/serializer';
+import { navigate } from '../lib/router';
 import type { CatalogueEntry, Catalogue } from '../types/catalogue';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '../types/catalogue';
 
@@ -70,7 +71,8 @@ export function GalleryModal({ onClose }: GalleryModalProps) {
 
   const handleLoadOntology = (entry: CatalogueEntry) => {
     loadOntology(entry.ontology, entry.bindings);
-    onClose();
+    // Navigate to the ontology deep link so the URL is shareable
+    navigate({ page: 'catalogue', ontologyId: entry.id });
   };
 
   const handleViewRdf = (entry: CatalogueEntry) => {

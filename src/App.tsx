@@ -66,21 +66,21 @@ function App() {
           const entry = data.entries.find((e) => e.id === id);
           if (entry) {
             loadOntology(entry.ontology, entry.bindings);
-            // Navigate to home now that the ontology is loaded
-            navigate({ page: 'home' });
+            // URL stays at /#/catalogue/<id> so it's shareable
           } else {
-            // Unknown ontology id — show the gallery so the user can pick
-            // (route stays at /#/catalogue/<id> which maps to showGallery)
+            // Unknown ontology id — open gallery so the user can pick
+            navigate({ page: 'catalogue' });
           }
         })
         .catch(() => {
-          // On error, fall through to gallery view
+          // On error, open gallery
+          navigate({ page: 'catalogue' });
         });
     }
   }, [route, loadOntology]);
 
-  // Derive gallery visibility from route
-  const showGallery = route.page === 'catalogue';
+  // Show gallery only when at /#/catalogue (no specific ontology ID)
+  const showGallery = route.page === 'catalogue' && !route.ontologyId;
 
   const closeGallery = useCallback(() => {
     navigate({ page: 'home' });
