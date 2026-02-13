@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Download, AlertTriangle, CheckCircle, Upload } from 'lucide-react';
 import { useDesignerStore } from '../../store/designerStore';
+import type { ValidationError } from '../../store/designerStore';
 import { useAppStore } from '../../store/appStore';
 import { serializeToRDF } from '../../lib/rdf/serializer';
 import { navigate } from '../../lib/router';
@@ -73,11 +74,13 @@ export function DesignerActions() {
       {validationErrors.length > 0 && (
         <div className="designer-validation-errors">
           <div className="designer-validation-header">
-            <AlertTriangle size={14} /> {validationErrors.length} validation error{validationErrors.length > 1 ? 's' : ''}
+            <AlertTriangle size={14} /> {validationErrors.length} issue{validationErrors.length > 1 ? 's' : ''} to fix
           </div>
           <ul>
             {validationErrors.map((err, i) => (
-              <li key={i}>{err.message}</li>
+              <li key={i}>
+                <ErrorItem error={err} />
+              </li>
             ))}
           </ul>
         </div>
@@ -90,5 +93,32 @@ export function DesignerActions() {
         </div>
       )}
     </div>
+  );
+}
+
+function ErrorItem({ error }: { error: ValidationError }) {
+  const selectEntity = useDesignerStore((s) => s.selectEntity);
+  const selectRelationship = useDesignerStore((s) => s.selectRelationship);
+
+  const handleClick = () => {
+    if (error.entityId) {
+      selectEntity(error.entityId);
+    } else if (error.relationshipId) {
+      selectRelationship(error.relationshipId);
+    }
+  };
+
+  const isClickable = error.entityId || error.relationshipId;
+
+  return (
+    <span
+      className={isClickable ? 'designer-error-link' : ''}
+      onClick={isClickable ? handleClick : undefined}
+      role={isClickable ? 'button' : undefined}
+      tabIndex={isClickable ? 0 : undefined}
+      onKeyDown={isClickable ? (e) => { if (e.key === 'Enter') handleClick(); } : undefined}
+    >
+      {error.message}
+    </span>
   );
 }

@@ -2103,6 +2103,15 @@ body {
   content: '• ';
   color: var(--ms-red);
 }
+.designer-error-link {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+}
+.designer-error-link:hover {
+  color: var(--text-primary);
+}
 
 .designer-success-msg {
   margin-top: 10px;

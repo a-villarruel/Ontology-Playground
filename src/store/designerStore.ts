@@ -11,51 +11,65 @@ import type { Ontology, EntityType, Property, Relationship, RelationshipAttribut
 // ─── Validation ──────────────────────────────────────────────────────────────
 
 export interface ValidationError {
-  path: string;       // e.g. "entities[0].properties"
   message: string;
+  entityId?: string;
+  relationshipId?: string;
 }
 
 export function validateOntology(ontology: Ontology): ValidationError[] {
   const errors: ValidationError[] = [];
 
   if (ontology.entityTypes.length === 0) {
-    errors.push({ path: 'entityTypes', message: 'Ontology must have at least one entity type' });
+    errors.push({ message: 'Add at least one entity type to your ontology.' });
   }
 
   const entityIds = new Set<string>();
-  for (let i = 0; i < ontology.entityTypes.length; i++) {
-    const e = ontology.entityTypes[i];
+  const entityNameById = new Map<string, string>();
+  for (const e of ontology.entityTypes) {
+    const label = e.name || 'Unnamed entity';
     if (!e.id) {
-      errors.push({ path: `entityTypes[${i}].id`, message: 'Entity type must have an ID' });
+      errors.push({ message: `"${label}" is missing an internal ID.`, entityId: e.id });
     } else if (entityIds.has(e.id)) {
-      errors.push({ path: `entityTypes[${i}].id`, message: `Duplicate entity ID "${e.id}"` });
+      errors.push({ message: `Two entities share the same ID "${e.id}". Rename one of them.`, entityId: e.id });
     } else {
       entityIds.add(e.id);
+      entityNameById.set(e.id, label);
     }
     if (!e.name) {
-      errors.push({ path: `entityTypes[${i}].name`, message: 'Entity type must have a name' });
+      errors.push({ message: 'One of your entities has no name. Give it a name.', entityId: e.id });
     }
     const hasIdentifier = e.properties.some((p) => p.isIdentifier);
     if (!hasIdentifier) {
-      errors.push({ path: `entityTypes[${i}].properties`, message: `Entity "${e.name || e.id}" needs at least one identifier property` });
+      errors.push({
+        message: `"${label}" has no identifier property. Click the key icon (🔑) on one of its properties to mark it as the unique identifier.`,
+        entityId: e.id,
+      });
     }
   }
 
   const relIds = new Set<string>();
-  for (let i = 0; i < ontology.relationships.length; i++) {
-    const r = ontology.relationships[i];
+  for (const r of ontology.relationships) {
+    const label = r.name || 'Unnamed relationship';
     if (!r.id) {
-      errors.push({ path: `relationships[${i}].id`, message: 'Relationship must have an ID' });
+      errors.push({ message: `"${label}" is missing an internal ID.`, relationshipId: r.id });
     } else if (relIds.has(r.id)) {
-      errors.push({ path: `relationships[${i}].id`, message: `Duplicate relationship ID "${r.id}"` });
+      errors.push({ message: `Two relationships share the same ID "${r.id}". Rename one of them.`, relationshipId: r.id });
     } else {
       relIds.add(r.id);
     }
     if (!entityIds.has(r.from)) {
-      errors.push({ path: `relationships[${i}].from`, message: `Relationship "${r.name}" references unknown source entity "${r.from}"` });
+      const fromLabel = r.from || '(none)';
+      errors.push({
+        message: `"${label}" points from "${fromLabel}" which doesn't exist. Pick a valid source entity.`,
+        relationshipId: r.id,
+      });
     }
     if (!entityIds.has(r.to)) {
-      errors.push({ path: `relationships[${i}].to`, message: `Relationship "${r.name}" references unknown target entity "${r.to}"` });
+      const toLabel = r.to || '(none)';
+      errors.push({
+        message: `"${label}" points to "${toLabel}" which doesn't exist. Pick a valid target entity.`,
+        relationshipId: r.id,
+      });
     }
   }
 

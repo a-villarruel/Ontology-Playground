@@ -12,7 +12,7 @@ beforeEach(() => {
 describe('validateOntology', () => {
   it('reports empty ontology', () => {
     const errors = validateOntology({ name: '', description: '', entityTypes: [], relationships: [] });
-    expect(errors).toEqual([{ path: 'entityTypes', message: 'Ontology must have at least one entity type' }]);
+    expect(errors).toEqual([{ message: 'Add at least one entity type to your ontology.' }]);
   });
 
   it('reports missing identifier property', () => {
@@ -39,7 +39,7 @@ describe('validateOntology', () => {
       ],
       relationships: [],
     };
-    expect(validateOntology(ontology).some((e) => e.message.includes('Duplicate entity'))).toBe(true);
+    expect(validateOntology(ontology).some((e) => e.message.includes('share the same ID'))).toBe(true);
   });
 
   it('reports duplicate relationship IDs', () => {
@@ -55,7 +55,7 @@ describe('validateOntology', () => {
         { id: 'r1', name: 'y', from: 'e2', to: 'e1', cardinality: 'one-to-one' },
       ],
     };
-    expect(validateOntology(ontology).some((e) => e.message.includes('Duplicate relationship'))).toBe(true);
+    expect(validateOntology(ontology).some((e) => e.message.includes('share the same ID'))).toBe(true);
   });
 
   it('reports relationships referencing unknown entities', () => {
@@ -69,7 +69,7 @@ describe('validateOntology', () => {
         { id: 'r1', name: 'x', from: 'e1', to: 'missing', cardinality: 'one-to-many' },
       ],
     };
-    expect(validateOntology(ontology).some((e) => e.message.includes('unknown target entity'))).toBe(true);
+    expect(validateOntology(ontology).some((e) => e.message.includes("doesn't exist"))).toBe(true);
   });
 
   it('passes for a valid ontology', () => {
