@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Download, AlertTriangle, CheckCircle, Upload, Github, FilePlus, Undo2, Redo2 } from 'lucide-react';
 import { useDesignerStore } from '../../store/designerStore';
 import type { ValidationError } from '../../store/designerStore';
@@ -97,9 +97,30 @@ export function DesignerToolbar() {
  * Validation feedback — rendered in the sidebar.
  */
 export function DesignerValidation() {
-  const { validationErrors } = useDesignerStore();
+  const validationErrors = useDesignerStore((s) => s.validationErrors);
+  const lastValidatedAt = useDesignerStore((s) => s._lastValidatedAt);
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  if (validationErrors.length === 0) return null;
+  // Show success banner for 3 seconds when validation runs with 0 errors
+  useEffect(() => {
+    if (lastValidatedAt > 0 && validationErrors.length === 0) {
+      setShowSuccess(true);
+      const timer = setTimeout(() => setShowSuccess(false), 3000);
+      return () => clearTimeout(timer);
+    }
+    setShowSuccess(false);
+  }, [lastValidatedAt, validationErrors.length]);
+
+  if (validationErrors.length === 0) {
+    if (!showSuccess) return null;
+    return (
+      <div className="designer-validation-success">
+        <div className="designer-validation-header" style={{ color: 'var(--ms-green, #16c60c)' }}>
+          <CheckCircle size={14} /> No issues found
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="designer-validation-errors">

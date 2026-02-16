@@ -132,6 +132,7 @@ interface DesignerState {
   selectedEntityId: string | null;
   selectedRelationshipId: string | null;
   validationErrors: ValidationError[];
+  _lastValidatedAt: number;
 
   // Actions — ontology metadata
   setOntologyName: (name: string) => void;
@@ -184,6 +185,7 @@ export const useDesignerStore = create<DesignerState>((set, get) => ({
   selectedEntityId: null,
   selectedRelationshipId: null,
   validationErrors: [],
+  _lastValidatedAt: 0,
   _past: [],
   _future: [],
 
@@ -397,7 +399,7 @@ export const useDesignerStore = create<DesignerState>((set, get) => ({
 
   validate: () => {
     const errors = validateOntology(get().ontology);
-    set({ validationErrors: errors });
+    set({ validationErrors: errors, _lastValidatedAt: Date.now() });
     return errors;
   },
 
