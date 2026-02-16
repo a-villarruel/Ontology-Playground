@@ -44,7 +44,7 @@ export function Header({ onHelpClick, onDataSourcesClick, onImportExportClick, o
         </svg>
         <div>
           <span className="header-title">{ontologyDisplayName}</span>
-          <span className="header-subtitle">Ontology Playground · Microsoft Fabric IQ</span>
+          <span className="header-subtitle">Ontology Playground (Preview) · Microsoft Fabric IQ</span>
         </div>
       </div>
 

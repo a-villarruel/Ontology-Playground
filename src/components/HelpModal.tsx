@@ -23,7 +23,7 @@ export function HelpModal({ onClose }: HelpModalProps) {
         style={{ maxWidth: 700 }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <h2 style={{ fontSize: 24, fontWeight: 600 }}>How to Use Ontology Playground</h2>
+          <h2 style={{ fontSize: 24, fontWeight: 600 }}>How to Use Ontology Playground (Preview)</h2>
           <button className="icon-btn" onClick={onClose}>
             <X size={20} />
           </button>
