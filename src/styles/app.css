@@ -56,6 +56,10 @@
   --graph-node-text: #B3B3B3;
   --graph-edge-color: #505050;
   --graph-edge-text: #808080;
+  
+  /* Chess board pattern colors for dark mode */
+  --chess-square-dark: rgba(30, 30, 30, 0.9);
+  --chess-square-light: rgba(45, 45, 45, 0.7);
 }
 
 /* Light Theme */
@@ -78,6 +82,10 @@
   --graph-node-text: #2A2A2A;
   --graph-edge-color: #888888;
   --graph-edge-text: #555555;
+  
+  /* Chess board pattern colors for light mode */
+  --chess-square-dark: rgba(235, 235, 235, 0.8);
+  --chess-square-light: rgba(250, 250, 250, 0.9);
 }
 
 * {
@@ -464,8 +472,16 @@ body {
 /* Center - Graph Canvas */
 .graph-container {
   position: relative;
-  background: var(--bg-primary);
   overflow: hidden;
+  /* Chess board pattern background */
+  background-image: 
+    linear-gradient(45deg, var(--chess-square-dark) 25%, transparent 25%),
+    linear-gradient(-45deg, var(--chess-square-dark) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--chess-square-dark) 75%),
+    linear-gradient(-45deg, transparent 75%, var(--chess-square-dark) 75%);
+  background-size: 40px 40px;
+  background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
+  background-color: var(--chess-square-light);
 }
 
 .graph-canvas {
