@@ -2,7 +2,7 @@
 
 export interface Property {
   name: string;
-  type: 'string' | 'integer' | 'decimal' | 'date' | 'datetime' | 'boolean' | 'enum';
+  type: 'string' | 'integer' | 'decimal' | 'double' | 'date' | 'datetime' | 'boolean' | 'enum';
   isIdentifier?: boolean;
   unit?: string;
   values?: string[];

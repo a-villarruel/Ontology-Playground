@@ -16,6 +16,25 @@ export interface ValidationError {
   relationshipId?: string;
 }
 
+// ─── Fabric IQ naming rules ─────────────────────────────────────────────────
+// 1–26 chars, alphanumeric + hyphens + underscores, must start & end with
+// an alphanumeric character.
+
+const FABRIC_IQ_NAME_RE = /^[A-Za-z0-9]([A-Za-z0-9_-]{0,24}[A-Za-z0-9])?$/;
+
+export function isValidFabricIQName(name: string): boolean {
+  return FABRIC_IQ_NAME_RE.test(name);
+}
+
+export function fabricIQNameError(kind: string, name: string): string | null {
+  if (!name) return null; // empty names are caught separately
+  if (name.length > 26) return `${kind} name "${name}" exceeds 26 characters.`;
+  if (!/^[A-Za-z0-9]/.test(name)) return `${kind} name "${name}" must start with a letter or digit.`;
+  if (!/[A-Za-z0-9]$/.test(name)) return `${kind} name "${name}" must end with a letter or digit.`;
+  if (!FABRIC_IQ_NAME_RE.test(name)) return `${kind} name "${name}" may only contain letters, digits, hyphens, and underscores.`;
+  return null;
+}
+
 export function validateOntology(ontology: Ontology): ValidationError[] {
   const errors: ValidationError[] = [];
 
@@ -25,6 +44,10 @@ export function validateOntology(ontology: Ontology): ValidationError[] {
 
   const entityIds = new Set<string>();
   const entityNameById = new Map<string, string>();
+
+  // Cross-entity property name → type map for uniqueness check (§7.2)
+  const propNameTypeMap = new Map<string, { type: string; entityName: string }>();
+
   for (const e of ontology.entityTypes) {
     const label = e.name || 'Unnamed entity';
     if (!e.id) {
@@ -38,12 +61,47 @@ export function validateOntology(ontology: Ontology): ValidationError[] {
     if (!e.name) {
       errors.push({ message: 'One of your entities has no name. Give it a name.', entityId: e.id });
     }
+
+    // §7.1 — Entity type name validation
+    const nameErr = fabricIQNameError('Entity type', e.name);
+    if (nameErr) {
+      errors.push({ message: nameErr, entityId: e.id });
+    }
+
     const hasIdentifier = e.properties.some((p) => p.isIdentifier);
     if (!hasIdentifier) {
       errors.push({
         message: `"${label}" has no identifier property. Click the key icon (🔑) on one of its properties to mark it as the unique identifier.`,
         entityId: e.id,
       });
+    }
+
+    // §1 partial — Identifier properties must be string or integer
+    for (const p of e.properties) {
+      if (p.isIdentifier && p.type !== 'string' && p.type !== 'integer') {
+        errors.push({
+          message: `Identifier property "${p.name}" on "${label}" must be string or integer type for Fabric IQ compatibility.`,
+          entityId: e.id,
+        });
+      }
+
+      // §7.2 — Property name validation
+      if (p.name) {
+        const propNameErr = fabricIQNameError('Property', p.name);
+        if (propNameErr) {
+          errors.push({ message: propNameErr, entityId: e.id });
+        }
+        // Cross-entity uniqueness: same property name must map to the same type
+        const existing = propNameTypeMap.get(p.name);
+        if (existing && existing.type !== p.type) {
+          errors.push({
+            message: `Property "${p.name}" is defined as "${p.type}" in "${label}" but as "${existing.type}" in "${existing.entityName}". Fabric IQ requires the same type when property names match across entity types.`,
+            entityId: e.id,
+          });
+        } else if (!existing) {
+          propNameTypeMap.set(p.name, { type: p.type, entityName: label });
+        }
+      }
     }
   }
 
@@ -68,6 +126,15 @@ export function validateOntology(ontology: Ontology): ValidationError[] {
       const toLabel = r.to || '(none)';
       errors.push({
         message: `"${label}" points to "${toLabel}" which doesn't exist. Pick a valid target entity.`,
+        relationshipId: r.id,
+      });
+    }
+
+    // §7.3 — Self-referencing relationship warning
+    if (r.from && r.to && r.from === r.to) {
+      const entityLabel = entityNameById.get(r.from) || r.from;
+      errors.push({
+        message: `"${label}" is a self-referencing relationship on "${entityLabel}". Fabric IQ requires source and target entity types to be different.`,
         relationshipId: r.id,
       });
     }

@@ -20,6 +20,7 @@ const XSD_TYPE_MAP: Record<string, string> = {
   string: 'xsd:string',
   integer: 'xsd:integer',
   decimal: 'xsd:decimal',
+  double: 'xsd:double',
   date: 'xsd:date',
   datetime: 'xsd:dateTime',
   boolean: 'xsd:boolean',

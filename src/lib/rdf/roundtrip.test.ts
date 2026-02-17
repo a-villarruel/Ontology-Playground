@@ -109,6 +109,7 @@ describe('RDF round-trip tests', () => {
             { name: 'strProp', type: 'string', isIdentifier: true, description: 'A string' },
             { name: 'intProp', type: 'integer', description: 'An integer' },
             { name: 'decProp', type: 'decimal', unit: 'USD', description: 'A decimal' },
+            { name: 'dblProp', type: 'double', description: 'A double' },
             { name: 'dateProp', type: 'date', description: 'A date' },
             { name: 'dtProp', type: 'datetime', description: 'A datetime' },
             { name: 'boolProp', type: 'boolean', description: 'A boolean' },

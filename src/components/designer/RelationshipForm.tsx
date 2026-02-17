@@ -83,6 +83,11 @@ export function RelationshipForm() {
 
             {isSelected && (
               <div className="designer-rel-body">
+                {rel.from === rel.to && (
+                  <div className="designer-field-hint error" style={{ marginBottom: 8 }}>
+                    ⚠️ Self-referencing relationship — Fabric IQ requires source and target entity types to be different.
+                  </div>
+                )}
                 {/* Name */}
                 <label className="designer-field">
                   <span>Name</span>

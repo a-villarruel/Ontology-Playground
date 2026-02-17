@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Trash2, ChevronDown, ChevronRight, GripVertical, Key } from 'lucide-react';
-import { useDesignerStore, ENTITY_COLORS, ENTITY_ICONS } from '../../store/designerStore';
+import { useDesignerStore, ENTITY_COLORS, ENTITY_ICONS, fabricIQNameError } from '../../store/designerStore';
 import type { Property } from '../../data/ontology';
 
 const PROPERTY_TYPES: Property['type'][] = [
-  'string', 'integer', 'decimal', 'date', 'datetime', 'boolean', 'enum',
+  'string', 'integer', 'decimal', 'double', 'date', 'datetime', 'boolean', 'enum',
 ];
 
 export function EntityForm() {
@@ -119,6 +119,9 @@ export function EntityForm() {
                     onChange={(e) => updateEntity(entity.id, { name: e.target.value })}
                     placeholder="Entity name"
                   />
+                  {entity.name && fabricIQNameError('Entity type', entity.name) && (
+                    <span className="designer-field-hint error">{fabricIQNameError('Entity type', entity.name)}</span>
+                  )}
                 </label>
 
                 {/* Description */}
@@ -177,8 +180,14 @@ export function EntityForm() {
                   </div>
 
                   <div className="designer-property-list">
-                    {entity.properties.map((prop, idx) => (
-                      <div key={idx} className="designer-property-row">
+                    {entity.properties.map((prop, idx) => {
+                      const propNameErr = prop.name ? fabricIQNameError('Property', prop.name) : null;
+                      const idTypeErr = prop.isIdentifier && prop.type !== 'string' && prop.type !== 'integer'
+                        ? `Identifier must be string or integer (currently ${prop.type}).`
+                        : null;
+                      return (
+                      <div key={idx}>
+                      <div className="designer-property-row">
                         <span
                           className="designer-grip"
                           title="Drag to reorder"
@@ -217,9 +226,9 @@ export function EntityForm() {
                           ))}
                         </select>
                         <button
-                          className={`designer-id-btn ${prop.isIdentifier ? 'active' : ''}`}
+                          className={`designer-id-btn ${prop.isIdentifier ? 'active' : ''} ${idTypeErr ? 'warning' : ''}`}
                           onClick={() => updateProperty(entity.id, idx, { isIdentifier: !prop.isIdentifier })}
-                          title={prop.isIdentifier ? 'Remove as identifier' : 'Mark as identifier'}
+                          title={idTypeErr || (prop.isIdentifier ? 'Remove as identifier' : 'Mark as identifier')}
                         >
                           <Key size={12} />
                         </button>
@@ -231,7 +240,12 @@ export function EntityForm() {
                           <Trash2 size={12} />
                         </button>
                       </div>
-                    ))}
+                      {(propNameErr || idTypeErr) && (
+                        <span className="designer-field-hint error">{propNameErr || idTypeErr}</span>
+                      )}
+                      </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useDesignerStore, validateOntology } from './designerStore';
+import { useDesignerStore, validateOntology, isValidFabricIQName, fabricIQNameError } from './designerStore';
 import type { Ontology } from '../data/ontology';
 
 // Reset store between tests
@@ -85,6 +85,128 @@ describe('validateOntology', () => {
       ],
     };
     expect(validateOntology(ontology)).toEqual([]);
+  });
+
+  // §7.1 — Entity type name validation
+  it('reports invalid entity type names (Fabric IQ rules)', () => {
+    const ontology: Ontology = {
+      name: 'Test',
+      description: '',
+      entityTypes: [
+        { id: 'e1', name: '-BadStart', description: '', icon: '📦', color: '#000', properties: [{ name: 'id', type: 'string', isIdentifier: true }] },
+      ],
+      relationships: [],
+    };
+    expect(validateOntology(ontology).some((e) => e.message.includes('must start with'))).toBe(true);
+  });
+
+  it('reports entity type names exceeding 26 characters', () => {
+    const ontology: Ontology = {
+      name: 'Test',
+      description: '',
+      entityTypes: [
+        { id: 'e1', name: 'A'.repeat(27), description: '', icon: '📦', color: '#000', properties: [{ name: 'id', type: 'string', isIdentifier: true }] },
+      ],
+      relationships: [],
+    };
+    expect(validateOntology(ontology).some((e) => e.message.includes('exceeds 26'))).toBe(true);
+  });
+
+  // §7.2 — Property name validation
+  it('reports invalid property names', () => {
+    const ontology: Ontology = {
+      name: 'Test',
+      description: '',
+      entityTypes: [
+        { id: 'e1', name: 'Foo', description: '', icon: '📦', color: '#000',
+          properties: [{ name: 'bad name!', type: 'string', isIdentifier: true }] },
+      ],
+      relationships: [],
+    };
+    const errors = validateOntology(ontology);
+    expect(errors.some((e) => e.message.includes('Property name'))).toBe(true);
+  });
+
+  it('reports cross-entity property type conflict', () => {
+    const ontology: Ontology = {
+      name: 'Test',
+      description: '',
+      entityTypes: [
+        { id: 'e1', name: 'Foo', description: '', icon: '📦', color: '#000',
+          properties: [{ name: 'sharedProp', type: 'string', isIdentifier: true }] },
+        { id: 'e2', name: 'Bar', description: '', icon: '📦', color: '#000',
+          properties: [{ name: 'sharedProp', type: 'integer', isIdentifier: true }] },
+      ],
+      relationships: [],
+    };
+    expect(validateOntology(ontology).some((e) => e.message.includes('same type when property names match'))).toBe(true);
+  });
+
+  // §1 partial — Identifier key type validation
+  it('reports non-string/integer identifier properties', () => {
+    const ontology: Ontology = {
+      name: 'Test',
+      description: '',
+      entityTypes: [
+        { id: 'e1', name: 'Foo', description: '', icon: '📦', color: '#000',
+          properties: [{ name: 'id', type: 'boolean', isIdentifier: true }] },
+      ],
+      relationships: [],
+    };
+    expect(validateOntology(ontology).some((e) => e.message.includes('must be string or integer'))).toBe(true);
+  });
+
+  // §7.3 — Self-referencing relationship
+  it('reports self-referencing relationships', () => {
+    const ontology: Ontology = {
+      name: 'Test',
+      description: '',
+      entityTypes: [
+        { id: 'e1', name: 'Foo', description: '', icon: '📦', color: '#000',
+          properties: [{ name: 'id', type: 'string', isIdentifier: true }] },
+      ],
+      relationships: [
+        { id: 'r1', name: 'selfRef', from: 'e1', to: 'e1', cardinality: 'one-to-many' },
+      ],
+    };
+    expect(validateOntology(ontology).some((e) => e.message.includes('self-referencing'))).toBe(true);
+  });
+});
+
+// ─── isValidFabricIQName helper ──────────────────────────────────────────────
+
+describe('isValidFabricIQName', () => {
+  it('accepts valid names', () => {
+    expect(isValidFabricIQName('Customer')).toBe(true);
+    expect(isValidFabricIQName('A')).toBe(true);
+    expect(isValidFabricIQName('My-Entity_01')).toBe(true);
+    expect(isValidFabricIQName('A'.repeat(26))).toBe(true);
+  });
+
+  it('rejects invalid names', () => {
+    expect(isValidFabricIQName('')).toBe(false);
+    expect(isValidFabricIQName('-start')).toBe(false);
+    expect(isValidFabricIQName('end-')).toBe(false);
+    expect(isValidFabricIQName('has space')).toBe(false);
+    expect(isValidFabricIQName('A'.repeat(27))).toBe(false);
+    expect(isValidFabricIQName('a@b')).toBe(false);
+  });
+});
+
+describe('fabricIQNameError', () => {
+  it('returns null for valid names', () => {
+    expect(fabricIQNameError('Entity type', 'Customer')).toBeNull();
+  });
+
+  it('returns null for empty names (caught elsewhere)', () => {
+    expect(fabricIQNameError('Entity type', '')).toBeNull();
+  });
+
+  it('returns specific error messages', () => {
+    expect(fabricIQNameError('Entity type', 'A'.repeat(27))).toContain('exceeds 26');
+    expect(fabricIQNameError('Property', '-start')).toContain('must start with');
+    expect(fabricIQNameError('Property', 'end-')).toContain('must end with');
+    expect(fabricIQNameError('Property', 'has space')).toContain('may only contain');
   });
 });
 

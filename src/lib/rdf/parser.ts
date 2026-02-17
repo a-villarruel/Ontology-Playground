@@ -94,7 +94,7 @@ function uncapitalize(str: string): string {
   return str.charAt(0).toLowerCase() + str.slice(1);
 }
 
-const VALID_PROPERTY_TYPES = ['string', 'integer', 'decimal', 'date', 'datetime', 'boolean', 'enum'] as const;
+const VALID_PROPERTY_TYPES = ['string', 'integer', 'decimal', 'double', 'date', 'datetime', 'boolean', 'enum'] as const;
 type PropertyType = (typeof VALID_PROPERTY_TYPES)[number];
 
 function isValidPropertyType(t: string): t is PropertyType {
@@ -108,7 +108,7 @@ const XSD_TO_TYPE: Record<string, PropertyType> = {
   long: 'integer',
   decimal: 'decimal',
   float: 'decimal',
-  double: 'decimal',
+  double: 'double',
   date: 'date',
   dateTime: 'datetime',
   boolean: 'boolean',
