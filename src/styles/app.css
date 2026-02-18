@@ -3107,6 +3107,10 @@ body {
   color: #888;
   white-space: nowrap;
 }
+.presentation-next-hint {
+  color: #0078D4;
+  font-weight: 400;
+}
 
 /* --- Article navigation --- */
 

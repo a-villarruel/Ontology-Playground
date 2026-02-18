@@ -294,6 +294,9 @@ function ArticleView({
         <PresentationMode
           article={article}
           darkMode={darkMode}
+          nextArticle={nextArticle}
+          prevArticle={prevArticle}
+          courseSlug={course.slug}
           onClose={() => {
             setPresenting(false);
             // Strip ?slide= from the URL
@@ -395,10 +398,16 @@ function PresentationMode({
   article,
   darkMode: initialDarkMode,
   onClose,
+  nextArticle,
+  prevArticle,
+  courseSlug,
 }: {
   article: LearnArticle;
   darkMode: boolean;
   onClose: () => void;
+  nextArticle?: LearnArticle;
+  prevArticle?: LearnArticle;
+  courseSlug: string;
 }) {
   const slides = useMemo(() => splitIntoSlides(article.html, article.title), [article.html, article.title]);
   const total = slides.length;
@@ -422,8 +431,38 @@ function PresentationMode({
     history.replaceState(null, '', `${base}${sep}slide=${slideIndex + 1}`);
   }, [slideIndex]);
 
-  const goNext = useCallback(() => setSlideIndex((i) => Math.min(i + 1, total - 1)), [total]);
-  const goPrev = useCallback(() => setSlideIndex((i) => Math.max(i - 1, 0)), []);
+  const goNext = useCallback(() => {
+    setSlideIndex((i) => {
+      if (i < total - 1) return i + 1;
+      // On last slide, advance to next article
+      if (nextArticle) {
+        navigate({ page: 'learn', courseSlug, articleSlug: nextArticle.slug });
+        // Set ?slide=1 so presentation auto-opens on the new article
+        requestAnimationFrame(() => {
+          const base = window.location.hash.replace(/[?&]slide=\d+/, '');
+          history.replaceState(null, '', `${base}?slide=1`);
+        });
+      }
+      return i;
+    });
+  }, [total, nextArticle, courseSlug]);
+  const goPrev = useCallback(() => {
+    setSlideIndex((i) => {
+      if (i > 0) return i - 1;
+      // On first slide, go to previous article's last slide
+      if (prevArticle) {
+        const prevSlides = splitIntoSlides(
+          prevArticle.html, prevArticle.title,
+        );
+        navigate({ page: 'learn', courseSlug, articleSlug: prevArticle.slug });
+        requestAnimationFrame(() => {
+          const base = window.location.hash.replace(/[?&]slide=\d+/, '');
+          history.replaceState(null, '', `${base}?slide=${prevSlides.length}`);
+        });
+      }
+      return i;
+    });
+  }, [prevArticle, courseSlug]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -502,8 +541,8 @@ function PresentationMode({
         <button
           className="presentation-nav presentation-nav--prev"
           onClick={goPrev}
-          disabled={slideIndex === 0}
-          aria-label="Previous slide"
+          disabled={slideIndex === 0 && !prevArticle}
+          aria-label={slideIndex === 0 && prevArticle ? `Previous: ${prevArticle.title}` : 'Previous slide'}
         >
           <ArrowLeft size={28} />
         </button>
@@ -520,8 +559,8 @@ function PresentationMode({
         <button
           className="presentation-nav presentation-nav--next"
           onClick={goNext}
-          disabled={slideIndex === total - 1}
-          aria-label="Next slide"
+          disabled={slideIndex === total - 1 && !nextArticle}
+          aria-label={slideIndex === total - 1 && nextArticle ? `Next: ${nextArticle.title}` : 'Next slide'}
         >
           <ChevronRight size={28} />
         </button>
@@ -534,7 +573,15 @@ function PresentationMode({
             style={{ width: `${((slideIndex + 1) / total) * 100}%` }}
           />
         </div>
-        <span className="presentation-counter">{slideIndex + 1} / {total}</span>
+        <span className="presentation-counter">
+          {slideIndex + 1} / {total}
+          {slideIndex === total - 1 && nextArticle && (
+            <span className="presentation-next-hint"> — next: {nextArticle.title}</span>
+          )}
+          {slideIndex === 0 && prevArticle && (
+            <span className="presentation-next-hint"> — prev: {prevArticle.title}</span>
+          )}
+        </span>
       </div>
     </div>
   );
