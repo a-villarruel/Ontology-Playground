@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { ArrowLeft, BookOpen, ChevronRight, Sun, Moon, FlaskConical, GraduationCap } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { ArrowLeft, BookOpen, ChevronRight, Sun, Moon, FlaskConical, GraduationCap, Play, X } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
 import { navigate } from '../lib/router';
 import type { Route } from '../lib/router';
@@ -197,6 +197,7 @@ function ArticleView({
   darkMode: boolean;
 }) {
   const contentRef = useRef<HTMLDivElement>(null);
+  const [presenting, setPresenting] = useState(false);
 
   const nextArticle = useMemo(
     () => course.articles.find((a) => a.order === article.order + 1),
@@ -271,10 +272,27 @@ function ArticleView({
 
   return (
     <div className="learn-article">
+      <div className="learn-article-toolbar">
+        <button
+          className="learn-present-btn"
+          onClick={() => setPresenting(true)}
+          title="Present as slides"
+        >
+          <Play size={16} />
+          <span>Present</span>
+        </button>
+      </div>
       <article className="learn-article-content" ref={contentRef}>
         <h1>{article.title}</h1>
         <div dangerouslySetInnerHTML={{ __html: article.html }} />
       </article>
+      {presenting && (
+        <PresentationMode
+          article={article}
+          darkMode={darkMode}
+          onClose={() => setPresenting(false)}
+        />
+      )}
       <nav className="learn-article-nav">
         {prevArticle ? (
           <button
@@ -303,6 +321,196 @@ function ArticleView({
           </button>
         )}
       </nav>
+    </div>
+  );
+}
+
+// -------------------------------------------------------------------
+// Presentation mode — splits article HTML into slides at <h2> boundaries
+// -------------------------------------------------------------------
+
+/** Split compiled HTML into slides. Each <h2> starts a new slide.
+ *  Content before the first <h2> becomes the title slide.
+ *  An <hr> within a section also creates an additional split. */
+function splitIntoSlides(html: string, title: string): string[] {
+  const container = document.createElement('div');
+  container.innerHTML = html;
+  const slides: string[] = [];
+  let currentSlide = document.createElement('div');
+
+  // Title slide gets the article's h1
+  const titleSlide = document.createElement('div');
+  titleSlide.innerHTML = `<h1>${title}</h1>`;
+
+  for (const child of Array.from(container.childNodes)) {
+    const el = child as HTMLElement;
+    if (el.nodeType === Node.ELEMENT_NODE && el.tagName === 'H2') {
+      // Flush the current slide
+      const content = currentSlide.innerHTML.trim();
+      if (content) {
+        if (slides.length === 0) {
+          // Prepend title to content before first h2
+          titleSlide.innerHTML += content;
+        } else {
+          slides.push(content);
+        }
+      }
+      if (slides.length === 0) {
+        slides.push(titleSlide.innerHTML);
+      }
+      // Start new slide with this h2
+      currentSlide = document.createElement('div');
+      currentSlide.appendChild(el.cloneNode(true));
+    } else if (el.nodeType === Node.ELEMENT_NODE && el.tagName === 'HR') {
+      // <hr> forces a slide split within a section
+      const content = currentSlide.innerHTML.trim();
+      if (content) slides.push(content);
+      currentSlide = document.createElement('div');
+    } else {
+      currentSlide.appendChild(el.cloneNode(true));
+    }
+  }
+  // Flush remaining content
+  const remaining = currentSlide.innerHTML.trim();
+  if (remaining) slides.push(remaining);
+
+  // Edge case: no h2 elements at all — wrap everything as a single slide
+  if (slides.length === 0) {
+    slides.push(`<h1>${title}</h1>${html}`);
+  }
+
+  return slides;
+}
+
+function PresentationMode({
+  article,
+  darkMode: initialDarkMode,
+  onClose,
+}: {
+  article: LearnArticle;
+  darkMode: boolean;
+  onClose: () => void;
+}) {
+  const [slideIndex, setSlideIndex] = useState(0);
+  const [presenterDark, setPresenterDark] = useState(initialDarkMode);
+  const slideRef = useRef<HTMLDivElement>(null);
+  const slides = useMemo(() => splitIntoSlides(article.html, article.title), [article.html, article.title]);
+  const total = slides.length;
+
+  const goNext = useCallback(() => setSlideIndex((i) => Math.min(i + 1, total - 1)), [total]);
+  const goPrev = useCallback(() => setSlideIndex((i) => Math.max(i - 1, 0)), []);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      else if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goNext(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); goPrev(); }
+      else if (e.key === 'Home') { e.preventDefault(); setSlideIndex(0); }
+      else if (e.key === 'End') { e.preventDefault(); setSlideIndex(total - 1); }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose, goNext, goPrev, total]);
+
+  // Hydrate ontology embeds when slide changes
+  useEffect(() => {
+    if (!slideRef.current) return;
+    const placeholders = slideRef.current.querySelectorAll('ontology-embed');
+    for (const el of placeholders) {
+      const id = el.getAttribute('id');
+      const height = el.getAttribute('height') || '350px';
+      const diff = el.getAttribute('diff') || '';
+      if (!id) continue;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'learn-embed-slot';
+      wrapper.style.height = height;
+      wrapper.dataset.catalogueId = id;
+      wrapper.dataset.theme = presenterDark ? 'dark' : 'light';
+      if (diff) wrapper.dataset.diffId = diff;
+      el.replaceWith(wrapper);
+    }
+    // Hydrate
+    const slots = slideRef.current.querySelectorAll<HTMLElement>('.learn-embed-slot');
+    if (slots.length === 0) return;
+    let cancelled = false;
+    fetch(`${import.meta.env.BASE_URL}catalogue.json`)
+      .then((res) => res.json() as Promise<Catalogue>)
+      .then((catalogue) => {
+        if (cancelled) return;
+        for (const slot of slots) {
+          const id = slot.dataset.catalogueId;
+          const diffId = slot.dataset.diffId;
+          const entry = catalogue.entries.find((e) => e.id === id);
+          if (!entry) continue;
+          const prevEntry = diffId ? catalogue.entries.find((e) => e.id === diffId) : undefined;
+          let newEntityIds: Set<string> | undefined;
+          let newRelIds: Set<string> | undefined;
+          if (prevEntry) {
+            const prevEntIds = new Set(prevEntry.ontology.entityTypes.map((et) => et.id));
+            const prevRelIdSet = new Set(prevEntry.ontology.relationships.map((r) => r.id));
+            newEntityIds = new Set(entry.ontology.entityTypes.filter((et) => !prevEntIds.has(et.id)).map((et) => et.id));
+            newRelIds = new Set(entry.ontology.relationships.filter((r) => !prevRelIdSet.has(r.id)).map((r) => r.id));
+          }
+          renderEmbedSlot(slot, entry, presenterDark, newEntityIds, newRelIds, prevEntry);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [slideIndex, presenterDark]);
+
+  return (
+    <div className={`presentation-overlay ${presenterDark ? '' : 'light-theme'}`}>
+      <div className="presentation-chrome">
+        <button className="presentation-close" onClick={onClose} title="Exit (Esc)">
+          <X size={20} />
+        </button>
+        <button
+          className="presentation-theme-toggle"
+          onClick={() => setPresenterDark((d) => !d)}
+          title="Toggle theme"
+        >
+          {presenterDark ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
+      </div>
+
+      <div className="presentation-stage">
+        <button
+          className="presentation-nav presentation-nav--prev"
+          onClick={goPrev}
+          disabled={slideIndex === 0}
+          aria-label="Previous slide"
+        >
+          <ArrowLeft size={28} />
+        </button>
+
+        <div className="presentation-slide-wrapper">
+          <div
+            ref={slideRef}
+            className="presentation-slide learn-article-content"
+            key={slideIndex}
+            dangerouslySetInnerHTML={{ __html: slides[slideIndex] }}
+          />
+        </div>
+
+        <button
+          className="presentation-nav presentation-nav--next"
+          onClick={goNext}
+          disabled={slideIndex === total - 1}
+          aria-label="Next slide"
+        >
+          <ChevronRight size={28} />
+        </button>
+      </div>
+
+      <div className="presentation-footer">
+        <div className="presentation-progress">
+          <div
+            className="presentation-progress-bar"
+            style={{ width: `${((slideIndex + 1) / total) * 100}%` }}
+          />
+        </div>
+        <span className="presentation-counter">{slideIndex + 1} / {total}</span>
+      </div>
     </div>
   );
 }

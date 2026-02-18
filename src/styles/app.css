@@ -2899,6 +2899,211 @@ body {
   font-size: 13px;
 }
 
+/* --- Article toolbar & Present button --- */
+
+.learn-article-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 0 12px 0;
+}
+
+.learn-present-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font: 500 13px/1 'Segoe UI', sans-serif;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+.learn-present-btn:hover {
+  border-color: var(--ms-blue);
+  background: var(--ms-blue);
+  color: #fff;
+}
+
+/* --- Presentation overlay --- */
+
+.presentation-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  background: #0D1117;
+  color: #E6E6E6;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+.presentation-overlay.light-theme {
+  background: #FAFBFC;
+  color: #1F2328;
+}
+
+/* Chrome: close + theme toggle */
+.presentation-chrome {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  display: flex;
+  gap: 8px;
+  z-index: 2010;
+}
+.presentation-close,
+.presentation-theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.presentation-close {
+  background: rgba(255,255,255,0.1);
+  color: #ccc;
+}
+.light-theme .presentation-close {
+  background: rgba(0,0,0,0.06);
+  color: #555;
+}
+.presentation-close:hover {
+  background: rgba(255,255,255,0.2);
+}
+.light-theme .presentation-close:hover {
+  background: rgba(0,0,0,0.12);
+}
+.presentation-theme-toggle {
+  background: rgba(255,255,255,0.1);
+  color: #ccc;
+}
+.light-theme .presentation-theme-toggle {
+  background: rgba(0,0,0,0.06);
+  color: #555;
+}
+.presentation-theme-toggle:hover {
+  background: rgba(255,255,255,0.2);
+}
+.light-theme .presentation-theme-toggle:hover {
+  background: rgba(0,0,0,0.12);
+}
+
+/* Stage: nav arrows + slide */
+.presentation-stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 60px 24px 24px;
+  min-height: 0;
+}
+
+.presentation-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  color: #999;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+.light-theme .presentation-nav {
+  background: rgba(0,0,0,0.05);
+  color: #888;
+}
+.presentation-nav:hover:not(:disabled) {
+  background: rgba(255,255,255,0.16);
+  color: #fff;
+}
+.light-theme .presentation-nav:hover:not(:disabled) {
+  background: rgba(0,0,0,0.1);
+  color: #333;
+}
+.presentation-nav:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+/* Slide content area */
+.presentation-slide-wrapper {
+  flex: 1;
+  max-width: 900px;
+  max-height: 100%;
+  overflow-y: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.presentation-slide {
+  width: 100%;
+  padding: 40px 48px;
+  animation: slideIn 0.25s ease-out;
+}
+.presentation-slide h1 {
+  font-size: 2.4em;
+  margin-bottom: 24px;
+}
+.presentation-slide h2 {
+  font-size: 1.8em;
+  margin-bottom: 20px;
+}
+.presentation-slide p,
+.presentation-slide li {
+  font-size: 1.15em;
+  line-height: 1.7;
+}
+.presentation-slide table {
+  font-size: 1em;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Footer: progress bar + counter */
+.presentation-footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px 16px;
+  flex-shrink: 0;
+}
+
+.presentation-progress {
+  flex: 1;
+  height: 3px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.light-theme .presentation-progress {
+  background: rgba(0,0,0,0.08);
+}
+.presentation-progress-bar {
+  height: 100%;
+  background: #0078D4;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+.presentation-counter {
+  font: 500 13px/1 'Segoe UI', sans-serif;
+  color: #888;
+  white-space: nowrap;
+}
+
 /* --- Article navigation --- */
 
 .learn-article-nav {
