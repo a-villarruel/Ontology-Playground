@@ -58,6 +58,8 @@ export function GalleryModal({ onClose }: GalleryModalProps) {
     return catalogue.filter((entry) => {
       if (sourceFilter !== 'all' && entry.source !== sourceFilter) return false;
       if (categoryFilter !== 'all' && entry.category !== categoryFilter) return false;
+      // Hide school step-by-step entries unless that category is explicitly selected
+      if (categoryFilter === 'all' && entry.category === 'school') return false;
       if (q) {
         const haystack = [
           entry.name,

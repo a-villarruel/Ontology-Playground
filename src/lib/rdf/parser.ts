@@ -281,9 +281,9 @@ export function parseRDF(rdfXml: string): { ontology: Ontology; bindings: DataBi
     const description = getChildText(el, 'comment', RDFS_NS) || undefined;
 
     // Get from/to entity IDs — prefer explicit ont:fromEntityId/toEntityId,
-    // fallback to domain/range URI
-    let fromId = getChildText(el, 'fromEntityId') || '';
-    let toId = getChildText(el, 'toEntityId') || '';
+    // fallback to domain/range URI.  Always uncapitalize to match entity IDs.
+    let fromId = uncapitalize(getChildText(el, 'fromEntityId') || '');
+    let toId = uncapitalize(getChildText(el, 'toEntityId') || '');
 
     if (!fromId) {
       const domainUri = getChildResource(el, 'domain');

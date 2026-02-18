@@ -29,6 +29,7 @@ export const CATEGORY_LABELS: Record<string, string> = {
   media: 'Media & Publishing',
   events: 'Events & Entertainment',
   general: 'General',
+  school: 'Ontology School: Get Started',
 };
 
 export const CATEGORY_COLORS: Record<string, string> = {
@@ -41,4 +42,5 @@ export const CATEGORY_COLORS: Record<string, string> = {
   media: '#9B59B6',
   events: '#00A9E0',
   general: '#6B7280',
+  school: '#E67E22',
 };
