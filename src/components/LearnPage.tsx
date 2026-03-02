@@ -6,6 +6,7 @@ import { navigate } from '../lib/router';
 import type { Route } from '../lib/router';
 import type { LearnManifest, LearnCourse, LearnArticle } from '../types/learn';
 import type { Catalogue } from '../types/catalogue';
+import type { Core as CytoscapeCore, StylesheetCSS, LayoutOptions } from 'cytoscape';
 
 interface LearnPageProps {
   route: Route & { page: 'learn' };
@@ -816,7 +817,7 @@ function mountGraph(
   newEntityIds?: Set<string>,
   newRelIds?: Set<string>,
   fixedPositions?: Map<string, { x: number; y: number }>,
-): Promise<CyInstance> {
+): Promise<CytoscapeCore> {
   const newHighlight = '#00C853';
   const nodeIds = entry.ontology.entityTypes.map((e) => e.id);
   const allFixed = fixedPositions != null && nodeIds.every((id) => fixedPositions.has(id));
@@ -844,8 +845,7 @@ function mountGraph(
       const cy = cytoscape({
         container,
         elements: [...nodes, ...edges],
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        style: cyStyles(colors, newHighlight) as any,
+        style: cyStyles(colors, newHighlight) as unknown as StylesheetCSS[],
         layout: { name: 'preset', fit: true, padding: 30 },
         minZoom: 0.3,
         maxZoom: 3,
@@ -867,16 +867,14 @@ function mountGraph(
       const cy = cytoscape({
         container,
         elements: [...nodes, ...edges],
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        style: cyStyles(colors, newHighlight) as any,
+        style: cyStyles(colors, newHighlight) as unknown as StylesheetCSS[],
         layout: {
           name: 'fcose',
           animate: false,
           fit: true,
           padding: 30,
           nodeDimensionsIncludeLabels: true,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any,
+        } as LayoutOptions,
         minZoom: 0.3,
         maxZoom: 3,
         userPanningEnabled: true,
@@ -886,14 +884,6 @@ function mountGraph(
       return cy;
     }),
   );
-}
-
-// Minimal Cytoscape instance type (avoids importing full types)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-interface CyInstance {
-  nodes: () => { forEach: (fn: (n: { id: () => string; position: () => { x: number; y: number } }) => void) => void };
-  resize: () => void;
-  fit: (...args: any[]) => void;
 }
 
 function renderEmbedSlot(
@@ -949,8 +939,8 @@ function renderEmbedSlot(
   applyChessboardBg(afterDiv, darkMode);
 
   let beforeDiv: HTMLDivElement | undefined;
-  let afterCy: CyInstance | undefined;
-  let beforeCy: CyInstance | undefined;
+  let afterCy: CytoscapeCore | undefined;
+  let beforeCy: CytoscapeCore | undefined;
 
   if (hasDiff) {
     beforeDiv = document.createElement('div');
@@ -1014,8 +1004,8 @@ function renderEmbedSlot(
     }
     // Resize both graphs to fit new container size
     requestAnimationFrame(() => {
-      if (afterCy) { afterCy.resize(); afterCy.fit(30); }
-      if (beforeCy) { beforeCy.resize(); beforeCy.fit(30); }
+      if (afterCy) { afterCy.resize(); afterCy.fit(undefined, 30); }
+      if (beforeCy) { beforeCy.resize(); beforeCy.fit(undefined, 30); }
     });
   });
   titleBar.appendChild(maximizeBtn);
@@ -1047,7 +1037,7 @@ function renderEmbedSlot(
     beforeMounting = true;
     // Extract node positions from the after graph
     const afterPositions = new Map<string, { x: number; y: number }>();
-    afterCy.nodes().forEach((n) => {
+    afterCy.nodes().forEach((n: { id: () => string; position: () => { x: number; y: number } }) => {
       afterPositions.set(n.id(), n.position());
     });
     // beforeDiv is now visible (display != none), so preset layout works
@@ -1064,8 +1054,8 @@ function renderEmbedSlot(
     if (activeView === 'before') ensureBeforeGraph();
     // Resize the now-visible graph so it fills correctly
     requestAnimationFrame(() => {
-      if (activeView === 'after' && afterCy) { afterCy.resize(); afterCy.fit(30); }
-      if (activeView === 'before' && beforeCy) { beforeCy.resize(); beforeCy.fit(30); }
+      if (activeView === 'after' && afterCy) { afterCy.resize(); afterCy.fit(undefined, 30); }
+      if (activeView === 'before' && beforeCy) { beforeCy.resize(); beforeCy.fit(undefined, 30); }
     });
   }
 

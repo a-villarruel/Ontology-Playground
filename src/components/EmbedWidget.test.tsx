@@ -48,10 +48,11 @@ function mockFetch(data: unknown, ok = true) {
 /* Cytoscape needs a DOM container with dimensions. 
    jsdom doesn't render so we mock cytoscape to avoid layout errors. */
 vi.mock('cytoscape', () => {
-  const handlers: Record<string, Function[]> = {};
+  type MockHandler = (...args: unknown[]) => void;
+  const handlers: Record<string, MockHandler[]> = {};
   const mockCy = {
-    on: (event: string, selectorOrFn: string | Function, maybeFn?: Function) => {
-      const fn = maybeFn || selectorOrFn as Function;
+    on: (event: string, selectorOrFn: string | MockHandler, maybeFn?: MockHandler) => {
+      const fn = maybeFn || selectorOrFn as MockHandler;
       const key = typeof selectorOrFn === 'string' ? `${event}:${selectorOrFn}` : event;
       (handlers[key] ||= []).push(fn);
     },
@@ -59,8 +60,7 @@ vi.mock('cytoscape', () => {
     container: () => document.createElement('div'),
   };
   const cytoscape = vi.fn(() => mockCy);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (cytoscape as any).use = vi.fn();
+  Object.assign(cytoscape, { use: vi.fn() });
   return { default: cytoscape };
 });
 
@@ -76,8 +76,7 @@ beforeEach(() => {
       container: () => document.createElement('div'),
     };
     const cytoscape = vi.fn(() => mockCy);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (cytoscape as any).use = vi.fn();
+    Object.assign(cytoscape, { use: vi.fn() });
     return { default: cytoscape };
   });
   vi.mock('cytoscape-fcose', () => ({ default: vi.fn() }));

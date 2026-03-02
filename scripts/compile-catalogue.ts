@@ -6,8 +6,8 @@
  *
  * Usage: npx tsx scripts/compile-catalogue.ts
  */
-import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, lstatSync } from 'node:fs';
-import { join, basename, dirname } from 'node:path';
+import { readFileSync, writeFileSync, existsSync, readdirSync, lstatSync } from 'node:fs';
+import { join, basename } from 'node:path';
 import { JSDOM } from 'jsdom';
 import { parseRDF } from '../src/lib/rdf/parser.js';
 import { serializeToRDF } from '../src/lib/rdf/serializer.js';
