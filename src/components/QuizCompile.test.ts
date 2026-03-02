@@ -82,4 +82,20 @@ describe('compile-learn quiz integration', () => {
       }
     }
   });
+
+  it('compiled learn html strips unsafe script and handler patterns', () => {
+    const forbiddenPatterns = [
+      /<script\b/i,
+      /\son\w+\s*=/i,
+      /javascript:/i,
+    ];
+
+    for (const course of manifest.courses) {
+      for (const article of course.articles) {
+        for (const pattern of forbiddenPatterns) {
+          expect(pattern.test(article.html)).toBe(false);
+        }
+      }
+    }
+  });
 });

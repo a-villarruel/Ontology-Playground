@@ -99,7 +99,7 @@ export function GalleryModal({ onClose }: GalleryModalProps) {
 
   const handleCopyEmbed = (entry: CatalogueEntry) => {
     const siteUrl = window.location.origin + (import.meta.env.BASE_URL || '/');
-    const snippet = `<div class="ontology-embed" data-catalogue-id="${entry.id}" data-catalogue-base-url="${siteUrl}" data-theme="dark" data-height="500px"></div>\n<script src="${siteUrl}embed/ontology-embed.js"><\/script>`;
+    const snippet = `<div class="ontology-embed" data-catalogue-id="${entry.id}" data-catalogue-base-url="${siteUrl}" data-theme="dark" data-height="500px"></div>\n<script src="${siteUrl}embed/ontology-embed.js"></script>`;
     navigator.clipboard.writeText(snippet).then(() => {
       setCopiedEmbedId(entry.id);
       setTimeout(() => setCopiedEmbedId(null), 2000);

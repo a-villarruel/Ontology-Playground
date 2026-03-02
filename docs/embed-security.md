@@ -9,6 +9,11 @@ Community users can submit ontologies to the catalogue via pull requests.
 
 **Answer:** No. The embed widget is safe by design.
 
+> Scope note: this document covers the **embed widget** threat model. Learn
+> article markdown rendering (`/#/learn`) has a separate sanitization boundary
+> in the compile pipeline (`scripts/compile-learn.ts`) and is not part of the
+> embed runtime attack surface.
+
 ## Data Flow
 
 Ontology data (entity names, descriptions, icons, colors, property names, relationship names) flows through three rendering paths:

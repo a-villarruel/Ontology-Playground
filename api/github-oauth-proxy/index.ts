@@ -49,7 +49,7 @@ const httpTrigger: AzureFunction = async function (
       },
       body,
     };
-  } catch (err) {
+  } catch {
     context.res = {
       status: 502,
       body: JSON.stringify({ error: 'Proxy request to GitHub failed' }),

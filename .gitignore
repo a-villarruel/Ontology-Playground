@@ -27,3 +27,7 @@ api/local.settings.json
 public/catalogue.json
 internal-docs/
 .vite
+release-review/
+data/codemind*.db
+**/codemind*.db
+.codemind/

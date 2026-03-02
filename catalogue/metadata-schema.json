@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://ontology-quest/metadata-schema.json",
+  "$id": "https://github.com/microsoft/Ontology-Playground/blob/main/catalogue/metadata-schema.json",
   "title": "Ontology Catalogue Metadata",
   "description": "Metadata for an ontology entry in the catalogue",
   "type": "object",

@@ -6,7 +6,18 @@ export default defineConfig({
   plugins: [react()],
   base: process.env.VITE_BASE_PATH || '/',
   build: {
-    outDir: 'build'
+    outDir: 'build',
+    chunkSizeWarningLimit: 900,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return undefined;
+          if (id.includes('cytoscape')) return 'graph-vendor';
+          if (id.includes('react') || id.includes('zustand') || id.includes('framer-motion')) return 'ui-vendor';
+          return 'vendor';
+        },
+      },
+    },
   },
   server: {
     proxy: {

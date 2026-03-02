@@ -34,7 +34,7 @@ This document contains guidelines for AI coding assistants working on this proje
 ## Project Structure
 
 ```
-ontology-quest/
+Ontology-Playground/
 ├── src/
 │   ├── components/    # React components (graph, designer, modals, tour, learn)
 │   ├── data/          # Data models, templates, and sample data

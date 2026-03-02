@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback, useMemo } from 'react';
 import cytoscape from 'cytoscape';
 import fcose from 'cytoscape-fcose';
-import type { Core, EventObject } from 'cytoscape';
+import type { Core, EventObject, LayoutOptions } from 'cytoscape';
 import { useAppStore } from '../store/appStore';
 import { ZoomIn, ZoomOut, Maximize2, RotateCcw } from 'lucide-react';
 
@@ -196,7 +196,7 @@ export function OntologyGraph() {
           }
         }
       ],
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       layout: {
         name: 'fcose',
         quality: 'proof',
@@ -216,7 +216,7 @@ export function OntologyGraph() {
         tilingPaddingVertical: 40,
         tilingPaddingHorizontal: 40,
         nodeSeparation: 100
-      } as any,
+      } as LayoutOptions,
       minZoom: 0.3,
       maxZoom: 3
     });
@@ -263,7 +263,7 @@ export function OntologyGraph() {
     mountedRef.current = true;
 
     // Run layout explicitly after initialization for better results
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     cy.layout({
       name: 'fcose',
       quality: 'proof',
@@ -276,7 +276,7 @@ export function OntologyGraph() {
       idealEdgeLength: () => 200,
       edgeElasticity: () => 0.45,
       nodeSeparation: 100
-    } as any).run();
+    } as unknown as Parameters<Core['layout']>[0]).run();
 
     return () => {
       mountedRef.current = false;
@@ -398,7 +398,7 @@ export function OntologyGraph() {
     const cy = getCy();
     if (cy) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         cy.layout({
           name: 'fcose',
           quality: 'proof',
@@ -411,7 +411,7 @@ export function OntologyGraph() {
           nodeRepulsion: () => 15000,
           idealEdgeLength: () => 200,
           nodeSeparation: 100
-        } as any).run();
+        } as unknown as Parameters<Core['layout']>[0]).run();
       } catch { /* ignore */ }
     }
   };

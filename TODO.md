@@ -252,6 +252,13 @@ These enhance the overall experience for a community learning resource.
 - [ ] Cache `catalogue.json` and the main app shell for offline use
 - [ ] Users can browse the full catalogue without a network connection
 
+## 5.7 Release artifact optimization (post-freeze)
+- [ ] Once feature/code churn stops, run a dedicated optimization pass for release artifacts:
+  - profile bundle composition with `rollup-plugin-visualizer`
+  - split/trim graph-heavy paths and embed runtime where possible
+  - tighten long-term caching strategy and asset naming
+  - re-baseline size targets for main app and embed bundle
+
 ### 5.5 Analytics & feedback (privacy-respecting)
 - [ ] Add optional, privacy-respecting analytics (e.g., Plausible, or simple
   custom event tracking to a static endpoint)

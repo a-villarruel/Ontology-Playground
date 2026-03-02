@@ -20,8 +20,8 @@ const GITHUB_OAUTH_BASE = import.meta.env.DEV ? '/__github' : '/api/github-oauth
 
 // The upstream repo that the catalogue lives in.
 // Change these if the repo moves.
-const UPSTREAM_OWNER = 'videlalvaro';
-const UPSTREAM_REPO = 'ontology-quest';
+const UPSTREAM_OWNER = 'microsoft';
+const UPSTREAM_REPO = 'Ontology-Playground';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -183,7 +183,7 @@ export async function getUser(token: string): Promise<GitHubUser> {
 
 /**
  * Ensure the user has a fork of the upstream repo.
- * Returns the fork's full_name (e.g. "username/ontology-quest").
+ * Returns the fork's full_name (e.g. "username/Ontology-Playground").
  */
 async function ensureFork(token: string): Promise<{ owner: string; repo: string }> {
   // Check if fork already exists

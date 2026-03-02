@@ -97,8 +97,8 @@ The `metadata.json` file must conform to the schema at
 ### Development Setup
 
 ```bash
-git clone https://github.com/<your-fork>/ontology-quest.git
-cd ontology-quest
+git clone https://github.com/<your-fork>/Ontology-Playground.git
+cd Ontology-Playground
 npm install
 npm run dev       # start development server
 npm test          # run tests

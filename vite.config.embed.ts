@@ -10,6 +10,8 @@ export default defineConfig({
   build: {
     outDir: 'build/embed',
     emptyOutDir: false,
+    target: 'es2020',
+    minify: 'esbuild',
     lib: {
       entry: 'src/embed.tsx',
       formats: ['iife'],
@@ -22,5 +24,6 @@ export default defineConfig({
       },
     },
     cssCodeSplit: false,
+    reportCompressedSize: true,
   },
 });

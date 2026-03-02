@@ -112,9 +112,9 @@ Client-side hash routing with shareable URLs for every page:
 |-------|------|
 | `/#/` | Home (default ontology) |
 | `/#/catalogue` | Ontology gallery |
-| `/#/catalogue/<id>` | Specific ontology |
+| `/#/catalogue/<source>/<slug>` | Specific ontology (e.g. `/#/catalogue/official/cosmic-coffee`) |
 | `/#/designer` | Visual designer |
-| `/#/designer/<id>` | Designer with catalogue ontology |
+| `/#/designer/<source>/<slug>` | Designer with catalogue ontology (e.g. `/#/designer/official/cosmic-coffee`) |
 | `/#/learn` | Ontology School — course catalogue |
 | `/#/learn/<course>` | Course detail — article list |
 | `/#/learn/<course>/<article>` | Article view (with presentation mode) |
@@ -140,7 +140,7 @@ Client-side hash routing with shareable URLs for every page:
 ### Installation
 
 ```bash
-cd ontology-quest
+cd Ontology-Playground
 npm install
 ```
 
@@ -209,7 +209,7 @@ GitHub Pages build so asset paths resolve correctly.
 ## Project Structure
 
 ```
-ontology-quest/
+Ontology-Playground/
 ├── src/
 │   ├── components/       # React components (graph, designer, modals, learn page)
 │   ├── data/             # Ontology model, query engine, quest definitions
@@ -254,3 +254,7 @@ ontology-quest/
 ## License
 
 MIT
+
+## Trademark Notice
+
+Trademarks This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft trademarks or logos is subject to and must follow Microsoft’s Trademark & Brand Guidelines. Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship. Any use of third-party trademarks or logos are subject to those third-party’s policies.

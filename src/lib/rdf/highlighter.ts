@@ -82,7 +82,7 @@ function highlightTag(tag: string, theme: HighlightTheme, baseKey: number): Reac
   //   3. Tag name at start (after < or </)
   //   4. Attribute name before =
   //   5. Everything else (punctuation: < > / = etc.)
-  const TAG_INNER = /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|([\w.-]+)(:)([\w.-]+)|([<\/?!]+)|([\w.-]+(?==))|([=>\/\s]+)/g;
+  const TAG_INNER = /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|([\w.-]+)(:)([\w.-]+)|([</?!]+)|([\w.-]+(?==))|([=>/\s]+)/g;
 
   let innerMatch: RegExpExecArray | null;
   let lastIndex = 0;

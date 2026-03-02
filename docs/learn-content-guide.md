@@ -88,6 +88,18 @@ Articles are standard markdown compiled by [marked](https://marked.js.org/).
 You can use all the usual syntax: headings, paragraphs, lists, tables, code
 blocks, bold, italic, links, and images.
 
+### Trust model and sanitization
+
+Learning content under `content/learn/` is treated as **trusted, reviewed
+repository content** (not user-generated runtime input). Even so, the build
+pipeline sanitizes compiled HTML before writing `public/learn.json`.
+
+- Disallowed tags/attributes (for example `<script>`, inline event handlers,
+  and `javascript:` links) are stripped during compilation.
+- Safe subsets of HTML are preserved (headings, lists, tables, code blocks,
+  links, images, quiz blocks, and `<ontology-embed>` tags).
+- CI validates this path by running `npm run learn:build` in the main workflow.
+
 ### Headings and presentation slides
 
 In **presentation mode**, the article is split into slides at every `<h2>`

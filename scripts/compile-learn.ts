@@ -21,6 +21,7 @@ import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from '
 import { join } from 'node:path';
 import { marked, type Tokens } from 'marked';
 import type { LearnArticle, LearnCourse, LearnManifest } from '../src/types/learn.js';
+import { sanitizeLearnHtml } from '../src/lib/learn/sanitizeHtml.js';
 
 // ------------------------------------------------------------------
 // Quiz block renderer — converts ```quiz fenced blocks to data divs
@@ -92,14 +93,6 @@ const OUTPUT_PATH = join(ROOT, 'public', 'learn.json');
 // ------------------------------------------------------------------
 // Frontmatter parser (simple YAML-like key: value)
 // ------------------------------------------------------------------
-
-interface ArticleFrontmatter {
-  title: string;
-  slug: string;
-  description: string;
-  order: number;
-  embed?: string;
-}
 
 interface CourseFrontmatter {
   title: string;
@@ -216,7 +209,8 @@ function compile(): LearnManifest {
         if (isNaN(order)) {
           throw new Error(`${filePath}: "order" must be a number`);
         }
-        const html = marked.parse(body, { async: false }) as string;
+        const rawHtml = marked.parse(body, { async: false }) as string;
+        const html = sanitizeLearnHtml(rawHtml);
 
         articles.push({
           slug: meta['slug'],

@@ -64,7 +64,7 @@ function App() {
       const timer = setTimeout(() => setToast(null), 4000);
       return () => clearTimeout(timer);
     }
-  }, [earnedBadges.length]);
+  }, [earnedBadges]);
 
   // Deep-link: /#/catalogue/<id> — load a specific ontology from the catalogue
   useEffect(() => {

@@ -22,6 +22,9 @@ jobs:
       - name: Compile catalogue
         run: npm run catalogue:build
 
+      - name: Compile learning content (sanitized)
+        run: npm run learn:build
+
       - name: Validate RDF files
         run: npm run validate
 

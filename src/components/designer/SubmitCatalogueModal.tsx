@@ -296,7 +296,7 @@ export function SubmitCatalogueModal({ onClose }: SubmitCatalogueModalProps) {
           <div className="submit-step">
             <p className="submit-description">
               Download your ontology as an RDF file and submit it as a pull request to the
-              {' '}<a href="https://github.com/videlalvaro/ontology-quest" target="_blank" rel="noopener noreferrer">
+              {' '}<a href="https://github.com/microsoft/Ontology-Playground" target="_blank" rel="noopener noreferrer">
                 community catalogue <ExternalLink size={12} />
               </a>.
             </p>
