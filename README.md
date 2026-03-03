@@ -2,6 +2,10 @@
 
 > Note: This project was developed with AI-assisted coding.
 
+**[Try it live &#x2192; microsoft.github.io/Ontology-Playground](https://microsoft.github.io/Ontology-Playground/)**
+
+[![Ontology Playground screenshot](public/og-image.png)](https://microsoft.github.io/Ontology-Playground/)
+
 A free, open-source web application for learning about ontologies and
 **Microsoft Fabric IQ**. Explore pre-built ontologies, design your own in a
 visual editor, export as RDF/XML, and share interactive diagrams — all from a
